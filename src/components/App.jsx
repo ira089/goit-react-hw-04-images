@@ -1,115 +1,104 @@
 
-import { useState } from "react";
-// import { Component } from 'react';
-import styles from './Feedback/feedback.module.css';
-import Section from './Feedback/Section';
-import Notification from './Feedback/Notification';
-import FeedbackOptions from './Feedback/FeedbackOptions';
-import Statistics from './Feedback/Statistics';
+import { Component } from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Searchbar from './Searchbar/Searchbar';
+import ImageGallery from './ImageGallery/ImageGallery';
+import Loader from './Loader/Loader';
+import Button from './Button/Button';
+// import Modal from './Modal/Modal';
+import searchImg from '../api/api.api';
+import styles from './App.module.css';
 
-// const arrItems = ['good','neutral', 'bad']
+const STATUS = {
+  IDLE: 'idle',
+  PENDING: 'pending',
+  REJECTED: 'rejected',
+  RESOLVED: 'resolved',
+};
 
-const App =()=> {
-  
-// const [good, setGood]= useState(0)
-// const [neutral, setNeutral]= useState(0)
-// const [bad, setBad]= useState(0)
-
-// const arrValues = [good, neutral,bad]
-const [options, setOptions] = useState({
-  good: 0,
-  neutral: 0,
-  bad: 0,
-})
-console.log(options)
-
-const arrItems = Object.keys(options)
-console.log(arrItems)
-
-const arrValues = Object.values(options);
-console.log(arrValues)
-
-  const leaveFeedback = ev => {
-    
-    const counterStatItem = ev.target.name;
-    console.log(counterStatItem)
-    setOptions(prevOptions => ({
-      ...prevOptions,
-      [counterStatItem]: prevOptions[counterStatItem] + 1
-    }))
-    // switch(counterStatItem) {
-    //   case 'good':
-    //     setGood(prevGood=> prevGood + 1)
-    //     break;
-    //     case 'neutral':
-    //       setNeutral(prevNeutral => prevNeutral + 1)
-    //       break;
-    //       case 'bad':
-    //         setBad(prefBad => prefBad + 1)
-    //         break;
-    //       default:
-    //         return;
-    // }
-
-    
+class App extends Component {
+  state = {
+    images: [],
+    search: '',
+    // loading: false,
+    // error: null,
+    page: 1,
+    // modalOpen: false,
+    status: STATUS.IDLE,
   };
 
-  const countTotalFeedback = () =>{
-    // const statValues = Object.values(this.state);
-    // console.log(statValues);
-    // const statValues = [good, neutral,bad]
-    const totalStat = arrValues.reduce((total, value) => total + value, 0);
-    return totalStat;
-  }
-
-  const countPositiveFeedbackPercentage = () => {
-    const total = countTotalFeedback();
-    if (!total) {
-      return 0;
+  async componentDidUpdate(_, prevState) {
+    const { search, page } = this.state;
+    if (search && (search !== prevState.search || page !== prevState.page)) {
+      this.fetchImgs();
     }
-    const positiveFeedback = options.good;
-    console.log(positiveFeedback);
-    return Number(((positiveFeedback / total) * 100).toFixed(2));
   }
 
-  // const values = Object.values(book);
-
-  const nofeedback = () => {
-    // const valuesArr = Object.values(this.state);
-    // const statValues = [good, neutral,bad]
-    // console.log(valuesArr);
-    const positiveValues = arrValues.filter(value => value > 0);
-    // console.log(positiveValues);
-    return positiveValues.length;
+  async fetchImgs() {
+    const { search, page } = this.state;
+    try {
+      // this.setState({ loading: true });
+      this.setState({ status: STATUS.PENDING });
+      const imagesApi = await searchImg(search, page);
+      const { hits } = imagesApi;
+      // console.log(hits);
+      const newhits = hits.map(hit => ({
+        id: hit.id,
+        tags: hit.tags,
+        url: hit.webformatURL,
+        urlModal: hit.largeImageURL,
+      }));
+      // console.log(newhits);
+      this.setState(({ images }) => ({
+        images: newhits?.length ? [...images, ...newhits] : images,
+        status: STATUS.RESOLVED,
+      }));
+    } catch (error) {
+      this.setState({
+        error: error.message,
+        status: STATUS.REJECTED,
+      });
+    }
   }
 
-  
-    const totalStatistic = countTotalFeedback();
-    const positiveFeedbackPercentage = countPositiveFeedbackPercentage();
+  addSearch = searchValue => {
+    // console.log('qwe');
+    this.setState({ search: searchValue, page: 1, images: [] });
+    // this.setState({ search: searchValue });
+  };
 
-    return (
-      <div className={styles.wrap}>
-        <Section title="Please leave feedback">
-          <div className={styles.blockBtn}>
-            <FeedbackOptions
-              values={arrValues} items={arrItems}
-              leaveFeedback={leaveFeedback}
-            />
+  addPag = () => {
+    // console.log('first');
+    this.setState(({ page }) => ({ page: page + 1 }));
+  };
+
+  render() {
+    const { addSearch, addPag } = this;
+    const { search, images } = this.state;
+    const isImages = Boolean(images.length);
+
+    if (this.state.status === STATUS.IDLE)
+      return (
+        <>
+          <Searchbar search={search} onSubmit={addSearch} />
+          <ToastContainer autoClose={3000} />
+        </>
+      );
+
+    if (this.state.status === STATUS.PENDING) return <Loader />;
+    if (this.state.status === STATUS.RESOLVED)
+      return (
+        <>
+          <div className={styles.app}>
+            <Searchbar search={search} onSubmit={addSearch} />
+            <ImageGallery items={images} />
           </div>
-        </Section>
-        {nofeedback() ? (
-          <Section title="Statistics">
-            <Statistics
-              items={arrItems} values={arrValues}
-              total={totalStatistic}
-              positiveFeedbackPercentage={positiveFeedbackPercentage}
-            />
-          </Section>
-        ) : (
-          <Notification message="There is no feedback" />
-        )}
-      </div>
-    );
-  
+          {isImages && <Button onClick={addPag}>Load more</Button>}
+        </>
+      );
+    if (this.state.status === STATUS.REJECTED)
+      return <p className={styles.error}>Error!</p>;
+  }
 }
 export default App;
