@@ -1,12 +1,11 @@
 
-import { Component } from 'react';
+import { useState,useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Loader from './Loader/Loader';
 import Button from './Button/Button';
-// import Modal from './Modal/Modal';
 import searchImg from '../api/api.api';
 import styles from './App.module.css';
 
@@ -17,68 +16,65 @@ const STATUS = {
   RESOLVED: 'resolved',
 };
 
-class App extends Component {
-  state = {
-    images: [],
-    search: '',
-    // loading: false,
-    // error: null,
-    page: 1,
-    // modalOpen: false,
-    status: STATUS.IDLE,
-  };
 
-  async componentDidUpdate(_, prevState) {
-    const { search, page } = this.state;
-    if (search && (search !== prevState.search || page !== prevState.page)) {
-      this.fetchImgs();
-    }
-  }
+const App =()=> {
+  const [images, setImages] = useState([]);
+  const [search, setSearch] = useState('');
+  const[page, setPage] = useState(1);
+  const[status, setStatus]= useState(STATUS.IDLE);
 
-  async fetchImgs() {
-    const { search, page } = this.state;
-    try {
-      // this.setState({ loading: true });
-      this.setState({ status: STATUS.PENDING });
-      const imagesApi = await searchImg(search, page);
+  // async componentDidUpdate = (_, prevState) => {
+  //   const { search, page } = this.state;
+  //   if (search && (search !== prevState.search || page !== prevState.page)) {
+  //     this.fetchImgs();
+  //   }
+  // }
+useEffect(()=>{
+const fetchImgs = async() => {
+  try {
+    setStatus(STATUS.PENDING);
+    const imagesApi = await searchImg(search, page);
       const { hits } = imagesApi;
-      // console.log(hits);
+      console.log(hits);
       const newhits = hits.map(hit => ({
         id: hit.id,
         tags: hit.tags,
         url: hit.webformatURL,
         urlModal: hit.largeImageURL,
       }));
-      // console.log(newhits);
-      this.setState(({ images }) => ({
-        images: newhits?.length ? [...images, ...newhits] : images,
-        status: STATUS.RESOLVED,
-      }));
-    } catch (error) {
-      this.setState({
-        error: error.message,
-        status: STATUS.REJECTED,
-      });
-    }
+      console.log(newhits);
+// строка под ?
+setImages(newhits?.length ? [...images, ...newhits] : images);
+setStatus(STATUS.RESOLVED);     
   }
+  catch(error) {
+    // error: error.message;
+setStatus(STATUS.REJECTED)
+  }
+  // finally {
+    
+  // }
+}
+fetchImgs()
+},[page, search])
 
-  addSearch = searchValue => {
-    // console.log('qwe');
-    this.setState({ search: searchValue, page: 1, images: [] });
-    // this.setState({ search: searchValue });
+  const addSearch = searchValue => {
+    if(searchValue === search) {
+      return alert(`you are already viewing ${search}`)
+    }
+    setSearch(searchValue);
+    setPage(1);
+    setImages([]);
   };
 
-  addPag = () => {
-    // console.log('first');
-    this.setState(({ page }) => ({ page: page + 1 }));
+  const addPag = () => {
+    console.log('first');
+    setPage(page + 1)
   };
-
-  render() {
-    const { addSearch, addPag } = this;
-    const { search, images } = this.state;
+   
     const isImages = Boolean(images.length);
 
-    if (this.state.status === STATUS.IDLE)
+    if (status === STATUS.IDLE)
       return (
         <>
           <Searchbar search={search} onSubmit={addSearch} />
@@ -86,8 +82,8 @@ class App extends Component {
         </>
       );
 
-    if (this.state.status === STATUS.PENDING) return <Loader />;
-    if (this.state.status === STATUS.RESOLVED)
+    if (status === STATUS.PENDING) return <Loader />;
+    if (status === STATUS.RESOLVED)
       return (
         <>
           <div className={styles.app}>
@@ -97,8 +93,8 @@ class App extends Component {
           {isImages && <Button onClick={addPag}>Load more</Button>}
         </>
       );
-    if (this.state.status === STATUS.REJECTED)
+    if (status === STATUS.REJECTED)
       return <p className={styles.error}>Error!</p>;
-  }
+  
 }
 export default App;
