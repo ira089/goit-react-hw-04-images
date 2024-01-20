@@ -1,0 +1,43 @@
+.wrap {
+    padding: 18px;
+    height: 100vh;
+  }
+  
+  .title {
+    font-size: 30px;
+  }
+  
+  .statisticsList {
+    list-style: none;
+    padding: 0;
+    font-size: 24px;
+  }
+  
+  .item {
+    margin-bottom: 10px;
+  }
+  
+  .item::first-letter {
+    text-transform: uppercase;
+  }
+  
+  .blockBtn {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .btn {
+    cursor: pointer;
+    font-size: 20px;
+    padding: 8px;
+    border: 1px solid gray;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(198, 187, 187, 0.5);
+  }
+  
+  .btn::first-letter {
+    text-transform: uppercase;
+  }
+  .btn:hover {
+    background-color: aqua;
+  }
