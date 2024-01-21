@@ -16,19 +16,12 @@ const STATUS = {
   RESOLVED: 'resolved',
 };
 
-
 const App =()=> {
   const [images, setImages] = useState([]);
   const [search, setSearch] = useState('');
   const[page, setPage] = useState(1);
   const[status, setStatus]= useState(STATUS.IDLE);
 
-  // async componentDidUpdate = (_, prevState) => {
-  //   const { search, page } = this.state;
-  //   if (search && (search !== prevState.search || page !== prevState.page)) {
-  //     this.fetchImgs();
-  //   }
-  // }
 useEffect(()=>{
 const fetchImgs = async() => {
   try {
@@ -43,8 +36,7 @@ const fetchImgs = async() => {
         urlModal: hit.largeImageURL,
       }));
       console.log(newhits);
-// строка под ?
-setImages(newhits?.length ? [...images, ...newhits] : images);
+setImages(prevItems => (newhits?.length ? [...prevItems, ...newhits] : prevItems));
 setStatus(STATUS.RESOLVED);     
   }
   catch(error) {
@@ -58,8 +50,13 @@ setStatus(STATUS.REJECTED)
 fetchImgs()
 },[page, search])
 
+// const notify = (search) => toast.warn(`you are already viewing ${search}`);
+
   const addSearch = searchValue => {
     if(searchValue === search) {
+      // toast.warn(`you are already viewing ${searchValue}`)
+      // return notify(searchValue);
+      // return toast.warn(`you are already viewing ${search}`);
       return alert(`you are already viewing ${search}`)
     }
     setSearch(searchValue);
@@ -69,7 +66,7 @@ fetchImgs()
 
   const addPag = () => {
     console.log('first');
-    setPage(page + 1)
+    setPage(prevPage => prevPage = 1);
   };
    
     const isImages = Boolean(images.length);
