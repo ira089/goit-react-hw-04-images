@@ -1,6 +1,6 @@
 
 import { useState,useEffect } from 'react';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer,toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
@@ -28,14 +28,18 @@ const fetchImgs = async() => {
     setStatus(STATUS.PENDING);
     const imagesApi = await searchImg(search, page);
       const { hits } = imagesApi;
-      console.log(hits);
+      if (hits.length === 0){
+        setStatus(STATUS.IDLE)
+        return alert('Sorry, nothing was found for your request.')
+      }
+      // console.log(hits);
       const newhits = hits.map(hit => ({
         id: hit.id,
         tags: hit.tags,
         url: hit.webformatURL,
         urlModal: hit.largeImageURL,
       }));
-      console.log(newhits);
+      // console.log(newhits);
 setImages(prevItems => (newhits?.length ? [...prevItems, ...newhits] : prevItems));
 setStatus(STATUS.RESOLVED);     
   }
@@ -43,20 +47,18 @@ setStatus(STATUS.RESOLVED);
     // error: error.message;
 setStatus(STATUS.REJECTED)
   }
-  // finally {
-    
-  // }
+  
 }
-fetchImgs()
-},[page, search])
+if(search || page > 1) {
+  fetchImgs()
+}
 
-// const notify = (search) => toast.warn(`you are already viewing ${search}`);
+},[page, search])
 
   const addSearch = searchValue => {
     if(searchValue === search) {
-      // toast.warn(`you are already viewing ${searchValue}`)
-      // return notify(searchValue);
-      // return toast.warn(`you are already viewing ${search}`);
+      toast.warn(`you are already viewing ${search}`);
+      // return
       return alert(`you are already viewing ${search}`)
     }
     setSearch(searchValue);
@@ -66,7 +68,7 @@ fetchImgs()
 
   const addPag = () => {
     console.log('first');
-    setPage(prevPage => prevPage = 1);
+    setPage(prevPage => prevPage + 1);
   };
    
     const isImages = Boolean(images.length);

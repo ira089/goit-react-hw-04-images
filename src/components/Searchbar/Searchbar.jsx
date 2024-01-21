@@ -7,13 +7,12 @@ const Searchbar =( {onSubmit}) =>{
   const [search, setSearch] = useState('');
 
   const handleChange = ({ target }) => {
-    console.log(target.value);
+    // console.log(target.value);
     setSearch(target.value)
   };
 
   const handleSubmit = evt => {
     evt.preventDefault();
-    console.log(search)
     if (search.trim() === '') {
       toast.error('Fill in the search field.');
       return;
@@ -32,7 +31,7 @@ const Searchbar =( {onSubmit}) =>{
 
           <input
             className={styles.searchFormInput}
-            required
+            // required
             onChange={handleChange}
             type="text"
             name="serch"
