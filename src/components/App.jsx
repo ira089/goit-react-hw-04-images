@@ -29,8 +29,10 @@ const fetchImgs = async() => {
     const imagesApi = await searchImg(search, page);
       const { hits } = imagesApi;
       if (hits.length === 0){
+       
         setStatus(STATUS.IDLE)
         return alert('Sorry, nothing was found for your request.')
+        
       }
       // console.log(hits);
       const newhits = hits.map(hit => ({
@@ -58,8 +60,8 @@ if(search || page > 1) {
   const addSearch = searchValue => {
     if(searchValue === search) {
       toast.warn(`you are already viewing ${search}`);
-      // return
-      return alert(`you are already viewing ${search}`)
+      return
+      // return alert(`you are already viewing ${search}`)
     }
     setSearch(searchValue);
     setPage(1);
@@ -82,6 +84,10 @@ if(search || page > 1) {
       );
 
     if (status === STATUS.PENDING) return <Loader />;
+
+    if (status === STATUS.REJECTED)
+      return <p className={styles.error}>Error!</p>;
+
     if (status === STATUS.RESOLVED)
       return (
         <>
@@ -90,10 +96,8 @@ if(search || page > 1) {
             <ImageGallery items={images} />
           </div>
           {isImages && <Button onClick={addPag}>Load more</Button>}
+          <ToastContainer autoClose={3000} />
         </>
       );
-    if (status === STATUS.REJECTED)
-      return <p className={styles.error}>Error!</p>;
-  
 }
 export default App;
